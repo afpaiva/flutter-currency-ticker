@@ -1,7 +1,6 @@
 name: currency_ticker
 description: A Currency Ticker.
 publish_to: "none"
-
 version: 1.0.0+1
 
 environment:
