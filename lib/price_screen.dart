@@ -1,6 +1,9 @@
+import 'package:currency_ticker/api_connect.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'coin.dart';
+import 'api_connect.dart';
+import 'displays.dart';
 
 class PriceScreen extends StatefulWidget {
   @override
@@ -9,6 +12,10 @@ class PriceScreen extends StatefulWidget {
 
 class _PriceScreenState extends State<PriceScreen> {
   int selectedCurrencyIndex = 0;
+  var resBTC;
+  var resETH;
+  var resLTC;
+  String selectedBaseSymbol = 'AUD';
 
   List<Text> getCurrencyList() {
     List<Text> currencyList = [];
@@ -23,6 +30,43 @@ class _PriceScreenState extends State<PriceScreen> {
     return currencyList;
   }
 
+  Future<dynamic> getBTC({required base}) async {
+    var getBTCValue = await APIConnect().getAPIResults(
+      baseCurrency: base,
+      targetCurrency: 'BTC',
+    );
+    print(getBTCValue);
+    setState(() {
+      resBTC = getBTCValue['rate'].round();
+    });
+  }
+
+  Future<dynamic> getETH({required base}) async {
+    var getETHValue = await APIConnect().getAPIResults(
+      baseCurrency: base,
+      targetCurrency: 'ETH',
+    );
+    setState(() {
+      resETH = getETHValue['rate'].round();
+    });
+  }
+
+  Future<dynamic> getLTC({required base}) async {
+    var getLTCValue = await APIConnect().getAPIResults(
+      baseCurrency: base,
+      targetCurrency: 'LTC',
+    );
+    setState(() {
+      resLTC = getLTCValue['rate'].round();
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getBTC(base: selectedBaseSymbol);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,23 +79,21 @@ class _PriceScreenState extends State<PriceScreen> {
         children: <Widget>[
           Padding(
             padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
-            child: Card(
-              color: Colors.lightBlueAccent,
-              elevation: 5.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
-                child: Text(
-                  '1 BTC = ? USD',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20.0,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
+            child: Column(
+              children: [
+                DisplayResults(
+                    label: 'BTC',
+                    apiResult: resBTC,
+                    selectedBaseSymbol: selectedBaseSymbol),
+                DisplayResults(
+                    label: 'ETH',
+                    apiResult: resETH,
+                    selectedBaseSymbol: selectedBaseSymbol),
+                DisplayResults(
+                    label: 'LTC',
+                    apiResult: resLTC,
+                    selectedBaseSymbol: selectedBaseSymbol),
+              ],
             ),
           ),
           Container(
@@ -64,9 +106,11 @@ class _PriceScreenState extends State<PriceScreen> {
                 itemExtent: 32,
                 onSelectedItemChanged: (selectedIndex) {
                   setState(() {
-                    selectedCurrencyIndex = selectedIndex;
-                    print(currenciesList[selectedIndex]);
+                    selectedBaseSymbol = currenciesList[selectedIndex];
                   });
+                  getBTC(base: selectedBaseSymbol);
+                  getETH(base: selectedBaseSymbol);
+                  getLTC(base: selectedBaseSymbol);
                 },
                 children: getCurrencyList(),
               )),
